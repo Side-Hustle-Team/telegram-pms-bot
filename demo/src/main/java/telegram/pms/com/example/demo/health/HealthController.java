@@ -1,4 +1,4 @@
-package telegram.pms.com.example.demo;
+package telegram.pms.com.example.demo.health;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
