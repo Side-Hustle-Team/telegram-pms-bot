@@ -1,0 +1,36 @@
+@startuml
+title Telegram PMS Bot - /start Registration Flow
+
+actor Member
+participant "Telegram App" as App
+participant "Telegram Bot API" as Telegram
+participant "Spring Boot Backend" as Backend
+participant "TelegramUpdateHandler" as Handler
+participant "MemberService" as MemberService
+database "PostgreSQL" as DB
+
+Member -> App : Open bot link
+Member -> App : Press Start
+App -> Telegram : Send /start token
+Telegram -> Backend : Send update payload
+
+Backend -> Handler : handleUpdate(update)
+Handler -> Handler : Check command == /start
+Handler -> MemberService : registerTelegramMember(chatId, username, firstName)
+
+MemberService -> DB : Check existing member by chatId
+
+alt Member exists
+    DB --> MemberService : Existing member
+    MemberService -> DB : Update username / connected status
+else New member
+    DB --> MemberService : Not found
+    MemberService -> DB : Insert new member
+end
+
+MemberService --> Handler : Registration success
+Handler -> Telegram : sendMessage(chatId, "Telegram connected successfully")
+Telegram -> App : Show confirmation message
+App -> Member : Connected successfully
+
+@enduml

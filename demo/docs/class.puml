@@ -1,0 +1,83 @@
+@startuml
+title Telegram PMS Bot - Main Class Diagram
+
+class Member {
+  - Long id
+  - Long telegramChatId
+  - String telegramUsername
+  - String firstName
+  - String lastName
+  - Boolean telegramConnected
+  - LocalDateTime connectedAt
+  - LocalDateTime createdAt
+  - LocalDateTime updatedAt
+}
+
+class PrivateLink {
+  - Long id
+  - String token
+  - String targetUrl
+  - LocalDateTime expiresAt
+  - Boolean used
+  - LocalDateTime usedAt
+  - LocalDateTime createdAt
+}
+
+class MessageLog {
+  - Long id
+  - Long telegramChatId
+  - String message
+  - MessageStatus status
+  - String errorMessage
+  - LocalDateTime sentAt
+  - LocalDateTime createdAt
+}
+
+enum MessageStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+class TelegramUpdateHandler {
+  + handleUpdate(Update update)
+  - handleStartCommand(Update update)
+}
+
+class TelegramMessageSender {
+  + sendMessage(Long chatId, String message)
+}
+
+class MemberService {
+  + registerTelegramMember(...)
+  + getConnectedMembers()
+  + findByTelegramChatId(Long chatId)
+}
+
+class PrivateLinkService {
+  + createPrivateLink(Member member)
+  + validateToken(String token)
+  + markAsUsed(String token)
+}
+
+class BroadcastService {
+  + sendBroadcast(BroadcastRequest request)
+}
+
+class MessageLogService {
+  + logSent(...)
+  + logFailed(...)
+}
+
+Member "1" --> "many" PrivateLink
+Member "1" --> "many" MessageLog
+
+TelegramUpdateHandler --> MemberService
+BroadcastService --> MemberService
+BroadcastService --> PrivateLinkService
+BroadcastService --> TelegramMessageSender
+BroadcastService --> MessageLogService
+PrivateLinkService --> PrivateLink
+MessageLogService --> MessageLog
+
+@enduml

@@ -1,0 +1,50 @@
+@startuml
+title Telegram PMS Bot - Broadcast Private Link Flow
+
+actor Admin
+participant "Admin API / Dashboard" as Dashboard
+participant "BroadcastController" as Controller
+participant "BroadcastService" as BroadcastService
+participant "MemberService" as MemberService
+participant "PrivateLinkService" as LinkService
+participant "TelegramMessageSender" as Sender
+participant "MessageLogService" as LogService
+cloud "Telegram Bot API" as Telegram
+database "PostgreSQL" as DB
+
+Admin -> Dashboard : Click Send Broadcast
+Dashboard -> Controller : POST /api/broadcast/send
+Controller -> BroadcastService : sendBroadcast(request)
+
+BroadcastService -> MemberService : getConnectedMembers(memberIds)
+MemberService -> DB : Query members with telegramChatId
+DB --> MemberService : Connected members
+MemberService --> BroadcastService : Member list
+
+loop For each member
+    BroadcastService -> LinkService : createPrivateLink(member)
+    LinkService -> DB : Save private link token
+    DB --> LinkService : Saved private link
+    LinkService --> BroadcastService : Private URL
+
+    BroadcastService -> Sender : sendMessage(chatId, message + privateUrl)
+    Sender -> Telegram : sendMessage(chat_id, text)
+
+    alt Send success
+        Telegram --> Sender : OK
+        Sender --> BroadcastService : Success
+        BroadcastService -> LogService : logSent(member, message)
+        LogService -> DB : Save SENT log
+    else Send failed
+        Telegram --> Sender : Error
+        Sender --> BroadcastService : Failed
+        BroadcastService -> LogService : logFailed(member, error)
+        LogService -> DB : Save FAILED log
+    end
+end
+
+BroadcastService --> Controller : Broadcast result summary
+Controller --> Dashboard : Sent count / failed count
+Dashboard --> Admin : Show result
+
+@enduml

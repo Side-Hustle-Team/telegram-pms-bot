@@ -1,0 +1,36 @@
+@startuml
+title Telegram PMS Bot - Admin Broadcast Activity
+
+start
+
+:Admin selects recipients;
+:Admin enters message content;
+:Admin clicks Send;
+
+:Backend validates request;
+
+if (Recipients available?) then (Yes)
+  :Fetch connected members;
+else (No)
+  :Return "No connected members";
+  stop
+endif
+
+repeat
+  :Generate private link;
+  :Send Telegram message;
+
+  if (Send success?) then (Yes)
+    :Save SENT message log;
+  else (No)
+    :Save FAILED message log;
+  endif
+
+repeat while (More recipients?)
+
+:Generate broadcast summary;
+:Return success count and failed count;
+
+stop
+
+@enduml
