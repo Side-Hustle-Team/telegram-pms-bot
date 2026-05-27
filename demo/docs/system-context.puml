@@ -1,0 +1,22 @@
+@startuml
+title Telegram PMS Bot - System Context Diagram
+
+actor Admin
+actor Member
+
+rectangle "Telegram PMS System\nSpring Boot Backend" as PMS {
+}
+
+rectangle "Telegram Bot API" as Telegram
+database "PostgreSQL Database" as DB
+
+Admin --> PMS : Create private link\nSend broadcast
+Member --> Telegram : Press Start\nReceive private link
+
+PMS --> Telegram : Send private messages\nReceive /start updates
+PMS --> DB : Store members,\nchat IDs, links,\nmessage logs
+
+Telegram --> Member : Private bot message
+Telegram --> PMS : Bot update payload
+
+@enduml

@@ -1,0 +1,16 @@
+@startuml
+title Telegram PMS Bot - Message Sending State Diagram
+
+[*] --> PENDING
+
+PENDING --> SENT : Telegram API returns OK
+PENDING --> FAILED : Telegram API returns error
+
+FAILED --> RETRY_PENDING : Retry allowed
+RETRY_PENDING --> SENT : Retry success
+RETRY_PENDING --> FAILED_PERMANENTLY : Max retries exceeded
+
+SENT --> [*]
+FAILED_PERMANENTLY --> [*]
+
+@enduml

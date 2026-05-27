@@ -1,0 +1,55 @@
+@startuml
+title Telegram PMS Bot - Spring Boot Component Architecture
+
+package "Spring Boot Application" {
+
+  package "health" {
+    [HealthController]
+  }
+
+  package "telegram" {
+    [TelegramBotConfig]
+    [TelegramUpdateHandler]
+    [TelegramMessageSender]
+  }
+
+  package "member" {
+    [MemberController]
+    [MemberService]
+    [MemberRepository]
+  }
+
+  package "privatelink" {
+    [PrivateLinkController]
+    [PrivateLinkService]
+    [PrivateLinkRepository]
+  }
+
+  package "broadcast" {
+    [BroadcastController]
+    [BroadcastService]
+  }
+
+  package "messagelog" {
+    [MessageLogService]
+    [MessageLogRepository]
+  }
+}
+
+database "PostgreSQL" as DB
+cloud "Telegram Bot API" as Telegram
+
+[BroadcastController] --> [BroadcastService]
+[BroadcastService] --> [MemberService]
+[BroadcastService] --> [PrivateLinkService]
+[BroadcastService] --> [TelegramMessageSender]
+[BroadcastService] --> [MessageLogService]
+
+[TelegramUpdateHandler] --> [MemberService]
+[TelegramMessageSender] --> Telegram
+
+[MemberRepository] --> DB
+[PrivateLinkRepository] --> DB
+[MessageLogRepository] --> DB
+
+@enduml

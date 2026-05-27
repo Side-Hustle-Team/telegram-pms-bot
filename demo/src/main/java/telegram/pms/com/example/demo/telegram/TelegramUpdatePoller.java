@@ -5,6 +5,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import telegram.pms.com.example.demo.telegram.properties.TelegramApiProperties;
+import telegram.pms.com.example.demo.telegram.properties.TelegramBotProperties;
+
 @Service
 @ConditionalOnProperty(name = "telegram.polling.enabled", havingValue = "true")
 public class TelegramUpdatePoller {
