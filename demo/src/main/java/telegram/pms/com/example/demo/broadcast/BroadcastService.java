@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import telegram.pms.com.example.demo.member.Member;
 import telegram.pms.com.example.demo.member.MemberService;
+import telegram.pms.com.example.demo.messagelog.MessageLogService;
 import telegram.pms.com.example.demo.telegram.TelegramMessageSender;
 
 // BroadcastService business logic for sending broadcast messages to all connected Telegram users. 
@@ -15,13 +16,16 @@ public class BroadcastService {
 
     private final MemberService memberService;
     private final TelegramMessageSender telegramMessageSender;
+    private final MessageLogService messageLogService;
 
     public BroadcastService(
             MemberService memberService,
-            TelegramMessageSender telegramMessageSender
+            TelegramMessageSender telegramMessageSender,
+            MessageLogService messageLogService
     ) {
         this.memberService = memberService;
         this.telegramMessageSender = telegramMessageSender;
+        this.messageLogService = messageLogService;
     }
 
     public BroadcastResult sendBroadcast(BroadcastRequest request) {
@@ -37,8 +41,10 @@ public class BroadcastService {
                         request.message()
                 );
 
+                messageLogService.logSent(recipient, request.message());
                 successCount++;
             } catch (Exception exception) {
+                messageLogService.logFailed(recipient, request.message(), exception.getMessage());
                 failedCount++;
             }
         }
