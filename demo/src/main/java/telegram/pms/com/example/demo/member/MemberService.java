@@ -30,7 +30,15 @@ public class MemberService {
         });
     }
 
-    public List<Member> getConnectedMembers() {
+    public List<Member> getConnectedMembers() { // return all connected members
         return memberRepository.findByTelegramConnectedTrue();
+    }
+
+    public List<Member> getConnectedMembers(List<Long> memberIds) { // return selected members only
+        if (memberIds == null || memberIds.isEmpty()) {
+            return getConnectedMembers();
+        }
+
+        return memberRepository.findByIdInAndTelegramConnectedTrue(memberIds);
     }
 }

@@ -25,7 +25,7 @@ public class BroadcastService {
     }
 
     public BroadcastResult sendBroadcast(BroadcastRequest request) {
-        List<Member> recipients = memberService.getConnectedMembers(); // get all member connected through /start command
+        List<Member> recipients = memberService.getConnectedMembers(request.memberIds()); // get all member connected through /start command
 
         int successCount = 0;
         int failedCount = 0;
