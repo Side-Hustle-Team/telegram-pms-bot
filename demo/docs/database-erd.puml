@@ -1,0 +1,70 @@
+@startuml
+title Telegram PMS Bot - Database ERD
+
+entity "members" as members {
+  * id : BIGINT <<PK>>
+  --
+  telegram_chat_id : BIGINT <<UNIQUE>>
+  telegram_username : VARCHAR
+  first_name : VARCHAR
+  last_name : VARCHAR
+  telegram_connected : BOOLEAN
+  connected_at : TIMESTAMP
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "private_links" as private_links {
+  * id : BIGINT <<PK>>
+  --
+  member_id : BIGINT <<FK>>
+  token : VARCHAR <<UNIQUE>>
+  target_url : TEXT
+  expires_at : TIMESTAMP
+  used : BOOLEAN
+  used_at : TIMESTAMP
+  created_at : TIMESTAMP
+}
+
+entity "message_logs" as message_logs {
+  * id : BIGINT <<PK>>
+  --
+  member_id : BIGINT <<FK>>
+  telegram_chat_id : BIGINT
+  message_content : TEXT
+  status : VARCHAR
+  error_message : TEXT
+  sent_at : TIMESTAMP
+  created_at : TIMESTAMP
+}
+
+entity "broadcasts" as broadcasts {
+  * id : BIGINT <<PK>>
+  --
+  title : VARCHAR
+  message_template : TEXT
+  total_recipients : INT
+  success_count : INT
+  failed_count : INT
+  created_at : TIMESTAMP
+}
+
+entity "broadcast_recipients" as broadcast_recipients {
+  * id : BIGINT <<PK>>
+  --
+  broadcast_id : BIGINT <<FK>>
+  member_id : BIGINT <<FK>>
+  private_link_id : BIGINT <<FK>>
+  message_log_id : BIGINT <<FK>>
+  status : VARCHAR
+  created_at : TIMESTAMP
+}
+
+members ||--o{ private_links
+members ||--o{ message_logs
+broadcasts ||--o{ broadcast_recipients
+members ||--o{ broadcast_recipients
+private_links ||--o{ broadcast_recipients
+message_logs ||--o{ broadcast_recipients
+
+@enduml
