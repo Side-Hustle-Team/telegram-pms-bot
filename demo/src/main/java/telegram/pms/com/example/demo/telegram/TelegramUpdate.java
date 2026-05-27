@@ -1,5 +1,6 @@
 package telegram.pms.com.example.demo.telegram;
 
+// This class represents the structure of the update received from Telegram API.
 public record TelegramUpdate(
         Long update_id,
         TelegramMessage message
