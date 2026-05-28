@@ -38,7 +38,10 @@ public class MemberService {
         if (memberIds == null || memberIds.isEmpty()) {
             return getConnectedMembers();
         }
-
         return memberRepository.findByIdInAndTelegramConnectedTrue(memberIds);
+    }
+
+    public Member findByTelegramChatId(Long telegramChatId) {
+        return memberRepository.findByTelegramChatId(telegramChatId).orElse(null);
     }
 }
