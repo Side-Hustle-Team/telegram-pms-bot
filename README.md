@@ -45,7 +45,7 @@ cd demo
 Create a PostgreSQL database:
 
 ```sql
-CREATE DATABASE telegram_pms_bot;
+CREATE DATABASE qninja_bypass_tele_bot;
 ```
 
 The app currently expects:
