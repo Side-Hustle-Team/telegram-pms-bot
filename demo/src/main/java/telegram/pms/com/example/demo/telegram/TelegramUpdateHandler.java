@@ -2,6 +2,7 @@ package telegram.pms.com.example.demo.telegram;
 
 import org.springframework.stereotype.Service;
 
+import telegram.pms.com.example.demo.member.Member;
 import telegram.pms.com.example.demo.member.MemberService;
 import telegram.pms.com.example.demo.telegram.properties.TelegramAdminProperties;
 
@@ -71,14 +72,20 @@ public class TelegramUpdateHandler {
         String senderName = buildSenderName(user);
         String username = user.username() == null ? "N/A" : "@" + user.username();
 
-        String notification = """
-            New Telegram Message 
+        Long chatId = update.message().chat().id();
+        Member member = memberService.findByTelegramChatId(chatId);
+        Long memberId = member == null ? null : member.getId();
 
-            From: %s (%s)
+        String notification = """
+            New Incoming Message 
+
+            ID: %s
+            %s (%s)
 
             Message:
             %s
             """.formatted(
+                memberId,
                 senderName,
                 username,
                 // userChatId,
