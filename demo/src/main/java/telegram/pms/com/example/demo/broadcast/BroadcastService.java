@@ -35,11 +35,21 @@ public class BroadcastService {
         int failedCount = 0;
 
         for (Member recipient : recipients) {
-            try { // Prevents one failed recipient from stopping the whole broadcast.
-                telegramMessageSender.sendMessage(
-                        recipient.getTelegramChatId(),
-                        request.message()
-                );
+            // Prevents one failed recipient from stopping the whole broadcast.
+            try {
+                // Send a photo if imageUrl is provided, otherwise send a text message.
+                if (request.imageUrl() != null && !request.imageUrl().isBlank()) {
+                    telegramMessageSender.sendPhoto(
+                            recipient.getTelegramChatId(),
+                            request.imageUrl(),
+                            blankToNull(request.message())
+                    );
+                } else {
+                    telegramMessageSender.sendMessage(
+                            recipient.getTelegramChatId(),
+                            request.message()
+                    );
+                }
 
                 messageLogService.logSent(recipient, request.message());
                 successCount++;
@@ -54,5 +64,14 @@ public class BroadcastService {
                 successCount,
                 failedCount
         );
+    }
+
+    // Converts blank strings to null to avoid sending empty captions in Telegram API, which can cause errors.
+    private String blankToNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        return value;
     }
 }
