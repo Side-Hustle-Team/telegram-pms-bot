@@ -9,8 +9,9 @@ The app can:
 - View connected members through an API
 - Send broadcasts to all connected members
 - Send broadcasts to selected members by internal member ID
+- Send text, photo-only, and photo-with-caption broadcasts
 - Log successful and failed broadcast sends
-- Notify an admin chat when users reply to the bot
+- Notify an admin chat when users connect or reply to the bot
 
 ## Project Structure
 
@@ -146,6 +147,8 @@ Telegram connected successfully.
 
 The user is saved in the `members` table.
 
+The admin chat also receives a notification when a user successfully connects.
+
 ## API Endpoints
 
 ### Health
@@ -205,6 +208,41 @@ Body:
 }
 ```
 
+### Send Photos To Selected Members
+
+```text
+POST /api/broadcast/send
+Content-Type: application/json
+```
+
+Photo with caption:
+
+```json
+{
+  "imageUrl": "https://www.image2url.com/r2/default/images/1779978534677-1a782bfa-7de3-438d-a02f-5ce1ac094a11.png",
+  "message": "Send image to 1, 2, 3",
+  "memberIds": [1, 3, 5]
+}
+```
+
+Photo only:
+
+```json
+{
+  "imageUrl": "https://picsum.photos/800/600.jpg",
+  "memberIds": [1, 3, 5]
+}
+```
+
+Text only:
+
+```json
+{
+  "message": "Send text to 1, 3, 5",
+  "memberIds": [1, 3, 5]
+}
+```
+
 `memberIds` are internal PostgreSQL `members.id` values, not Telegram chat IDs.
 
 Example response:
@@ -214,6 +252,30 @@ Example response:
   "totalRecipients": 3,
   "successCount": 3,
   "failedCount": 0
+}
+```
+
+Broadcast validation requires at least one of:
+
+```text
+message
+imageUrl
+```
+
+So these are valid:
+
+```json
+{ "message": "Text only" }
+```
+
+```json
+{ "imageUrl": "https://picsum.photos/800/600.jpg" }
+```
+
+```json
+{
+  "message": "Image caption",
+  "imageUrl": "https://picsum.photos/800/600.jpg"
 }
 ```
 
@@ -264,13 +326,34 @@ ORDER BY ml.created_at DESC;
 
 ## Telegram Reply Notifications
 
-When a user sends a normal message to the bot, the app sends a notification to:
+When a user sends `/start` or a normal message to the bot, the app sends a notification to:
 
 ```properties
 TELEGRAM_ADMIN_CHAT_ID
 ```
 
 This uses the same Telegram `sendMessage` API. The notification appears inside the admin's Telegram chat with the bot.
+
+## Delivery Status
+
+The app logs each broadcast attempt in `message_logs`.
+
+Current statuses:
+
+```text
+SENT
+FAILED
+```
+
+`SENT` means Telegram accepted the message or photo request.
+
+`FAILED` means Telegram rejected the request or the app could not complete it. The reason is stored in:
+
+```text
+message_logs.error_message
+```
+
+Telegram Bot API does not provide normal read receipts for private bot messages, so the app cannot know whether a user has seen or read a message. If read confirmation is needed later, add an explicit action such as a "Confirm Received" button or a tracked private link.
 
 ## Common Issues
 
@@ -283,6 +366,7 @@ Check:
 - `TELEGRAM_BOT_TOKEN` is valid
 - You started the app from the `demo` folder
 - You sent a fresh `/start` message
+- The bot does not have an active webhook if you are using polling
 
 Test the token:
 
@@ -306,6 +390,27 @@ Fix:
 - Update `demo/.env`
 - Restart Spring Boot
 
+### Photo broadcast fails
+
+If `message_logs.error_message` contains:
+
+```text
+failed to get HTTP URL content
+```
+
+Telegram could not fetch the image URL.
+
+Use a public, direct image URL. Good quick test:
+
+```json
+{
+  "imageUrl": "https://picsum.photos/800/600.jpg",
+  "memberIds": [1]
+}
+```
+
+Some websites block Telegram from fetching image URLs or return browser-only redirects.
+
 ### `psql` is not recognized
 
 PostgreSQL may still be working. This only means the `psql` command-line tool is not in your Windows PATH.
@@ -319,3 +424,4 @@ You can keep using the VS Code PostgreSQL extension.
 - H2 is used for tests.
 - PostgreSQL is used for local runtime data.
 - Message logs are stored for each broadcast recipient.
+- Delivery logs confirm Telegram API success/failure, not user read/seen status.
