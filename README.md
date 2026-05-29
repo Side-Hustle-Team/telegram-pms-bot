@@ -205,6 +205,23 @@ Body:
 }
 ```
 
+### Send Photos To Selected Members
+
+```text
+POST /api/broadcast/send
+Content-Type: application/json
+```
+
+Body:
+
+```json
+{
+  "imageUrl": "https://www.image2url.com/r2/default/images/1779978534677-1a782bfa-7de3-438d-a02f-5ce1ac094a11.png",
+  "message": "Send image to 1, 2, 3",
+  "memberIds": [1, 3, 5]
+}
+```
+
 `memberIds` are internal PostgreSQL `members.id` values, not Telegram chat IDs.
 
 Example response:
