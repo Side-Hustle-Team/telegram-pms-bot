@@ -1,6 +1,8 @@
 package telegram.pms.com.example.demo.broadcast;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
@@ -21,15 +23,25 @@ public class BroadcastService {
     public BroadcastService(
             MemberService memberService,
             TelegramMessageSender telegramMessageSender,
-            MessageLogService messageLogService
-    ) {
+            MessageLogService messageLogService) {
         this.memberService = memberService;
         this.telegramMessageSender = telegramMessageSender;
         this.messageLogService = messageLogService;
     }
 
     public BroadcastResult sendBroadcast(BroadcastRequest request) {
-        List<Member> recipients = memberService.getConnectedMembers(request.memberIds()); // get all member connected through /start command
+        List<Member> recipients = memberService.getConnectedMembers(request.memberIds()); // get all member connected
+                                                                                          // through /start command
+        // If memberIds is provided, send to selected members, except excluded ones
+        // If memberIds is not provided, send to all connected members, except excluded
+        // ones
+        if (request.excludeMemberIds() != null && !request.excludeMemberIds().isEmpty()) {
+            Set<Long> excludeIds = new HashSet<>(request.excludeMemberIds());
+
+            recipients = recipients.stream()
+                    .filter(member -> !excludeIds.contains(member.getId()))
+                    .toList();
+        }
 
         int successCount = 0;
         int failedCount = 0;
@@ -42,13 +54,11 @@ public class BroadcastService {
                     telegramMessageSender.sendPhoto(
                             recipient.getTelegramChatId(),
                             request.imageUrl(),
-                            blankToNull(request.message())
-                    );
+                            blankToNull(request.message()));
                 } else {
                     telegramMessageSender.sendMessage(
                             recipient.getTelegramChatId(),
-                            request.message()
-                    );
+                            request.message());
                 }
 
                 messageLogService.logSent(recipient, request.message());
@@ -62,11 +72,11 @@ public class BroadcastService {
         return new BroadcastResult(
                 recipients.size(),
                 successCount,
-                failedCount
-        );
+                failedCount);
     }
 
-    // Converts blank strings to null to avoid sending empty captions in Telegram API, which can cause errors.
+    // Converts blank strings to null to avoid sending empty captions in Telegram
+    // API, which can cause errors.
     private String blankToNull(String value) {
         if (value == null || value.isBlank()) {
             return null;

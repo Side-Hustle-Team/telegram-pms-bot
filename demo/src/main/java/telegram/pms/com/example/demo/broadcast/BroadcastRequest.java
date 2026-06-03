@@ -9,8 +9,7 @@ public record BroadcastRequest(
         // @NotBlank
         String message,
         String imageUrl,
-        List<Long> memberIds
-        ) {
+        List<Long> memberIds, List<Long> excludeMemberIds) {
 
     @AssertTrue(message = "Either message or imageUrl must be provided")
     public boolean hasMessageOrImage() {
