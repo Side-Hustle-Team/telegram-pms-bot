@@ -30,8 +30,7 @@ public class BroadcastService {
     }
 
     public BroadcastResult sendBroadcast(BroadcastRequest request) {
-        List<Member> recipients = memberService.getConnectedMembers(request.memberIds()); // get all member connected
-                                                                                          // through /start command
+        List<Member> recipients = memberService.getConnectedMembers(request.memberIds()); // get all member connected through /start command
         // If memberIds is provided, send to selected members, except excluded ones
         // If memberIds is not provided, send to all connected members, except excluded
         // ones
@@ -39,8 +38,8 @@ public class BroadcastService {
             Set<Long> excludeIds = new HashSet<>(request.excludeMemberIds());
 
             recipients = recipients.stream()
-                    .filter(member -> !excludeIds.contains(member.getId()))
-                    .toList();
+                .filter(member -> !excludeIds.contains(member.getId()))
+                .toList();
         }
 
         int successCount = 0;
